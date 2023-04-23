@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, process::Command};
 use sysinfo::{Pid, SystemExt, ProcessExt};
 
 
@@ -11,15 +11,15 @@ fn main() {
     args.next().unwrap();
 
     // Parse PID and SIGNAL
-    let pid: usize = args.next()
+    let pid = args.next()
         .expect("Missing PID argument. (run as ./signaler <pid> <signal>)")
-        .into_string().unwrap()
-        .parse().expect("The received value for PID cannot be cast to int. Please use numbers only.");
+        .into_string().unwrap();
+        // .parse().expect("The received value for PID cannot be cast to int. Please use numbers only.");
 
-    let signal: i32 = args.next()
+    let signal = args.next()
         .expect("Missing SIGNAL argument. (run as ./signaler <pid> <signal>)")
-        .into_string().unwrap()
-        .parse().expect("The received value for SIGNAL cannot be cast to int. Please use numbers only.");
+        .into_string().unwrap();
+        // .parse().expect("The received value for SIGNAL cannot be cast to int. Please use numbers only.");
 
     println!("PID: {}", pid);
     println!("SIGNAL: {}", signal);
@@ -27,9 +27,21 @@ fn main() {
     // Get and update system info
     let mut system = sysinfo::System::new_all();
     system.refresh_all();
-    let pid: Pid = Pid::from(pid);
 
-    let proc = system.process(pid).expect("Chosen PID does not exist.");
+    // Get PID as a PID Struct
+    let pid_number: usize = pid.parse().expect("The received value for PID cannot be cast to int. Please use numbers only.");
+    let pid_struct: Pid = Pid::from(pid_number);
+
+    // Confirm the PID exists
+    let proc = system.process(pid_struct).expect("Chosen PID does not exist.");
     println!("PID {} exists and is {}", pid, proc.status());
     
+    // Send signal using the "kill" command
+    print!("Dispatching signal {} to the process with PID={}\n", signal, pid);
+    let mut kill = Command::new("kill")
+        .args(["-s", signal.as_str(), pid.as_str()])
+        .spawn().expect("Failed to dispatch signal.");
+
+    kill.wait().unwrap();
+
 }
