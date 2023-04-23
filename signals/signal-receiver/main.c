@@ -15,13 +15,16 @@ void treatSigUsr2(int sig) {
 };
 
 void treatSigInt(int sig) {
-    printf("SIGINT received.\nAborting..");
+    printf("SIGINT received.\nAborting..\n");
     exit(0);
 };
 
 
 int main(void)
 {
+    // Read and print the receiver's PID
+    int pid = getpid();
+    printf("Signal receiver PID: %d\n", pid);
 
     // Register signal handlers
     if (signal(SIGUSR1, treatSigUsr1) == SIG_ERR)
