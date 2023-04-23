@@ -1,5 +1,12 @@
-use argv;
+use std::env;
+
 
 fn main() {
-    println!("{}", argv);
+
+    for argument in env::args_os() {
+        
+        println!("{}", 
+            argument.into_string().expect("Error reading arguments.")
+        );
+    }
 }
