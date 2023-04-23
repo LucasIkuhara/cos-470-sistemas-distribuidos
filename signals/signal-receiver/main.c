@@ -54,8 +54,11 @@ int main(int argc, char *argv[])
     if (signal(SIGINT, treatSigInt) == SIG_ERR)
        printf("Unable to register a handler for signal SIGTERM");
 
+    // Wait for signals
     while (1) {
-        sleep(1);
+        if (blockMode) {
+            sleep(1);
+        }
     }
 
     return 0;
