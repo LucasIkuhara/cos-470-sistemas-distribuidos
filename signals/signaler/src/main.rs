@@ -14,12 +14,10 @@ fn main() {
     let pid = args.next()
         .expect("Missing PID argument. (run as ./signaler <pid> <signal>)")
         .into_string().unwrap();
-        // .parse().expect("The received value for PID cannot be cast to int. Please use numbers only.");
 
     let signal = args.next()
         .expect("Missing SIGNAL argument. (run as ./signaler <pid> <signal>)")
         .into_string().unwrap();
-        // .parse().expect("The received value for SIGNAL cannot be cast to int. Please use numbers only.");
 
     println!("PID: {}", pid);
     println!("SIGNAL: {}", signal);
