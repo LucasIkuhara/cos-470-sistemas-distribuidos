@@ -3,6 +3,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 // Map signals 
@@ -20,11 +21,28 @@ void treatSigInt(int sig) {
 };
 
 
-int main(void)
+int main(int argc, char *argv[])
 {
     // Read and print the receiver's PID
     int pid = getpid();
     printf("Signal receiver PID: %d\n", pid);
+
+    // Check if an argument is present for busy vs blocking waiting
+    if (argc < 2) {
+        printf("Missing argument for busy or blocking waiting. Aborting..\n");
+        exit(1);
+    }
+
+    // Decide between blocking or busy waiting
+    int blockMode;
+    if (strcmp(argv[1], "block\n") == 0 || strcmp(argv[1], "block") == 0) { 
+        printf("Blocking-wait will be used.\n");
+        blockMode = 1;
+    }
+    else {
+        printf("Busy-wait will be used.\n");
+        blockMode = 0;
+    }
 
     // Register signal handlers
     if (signal(SIGUSR1, treatSigUsr1) == SIG_ERR)
