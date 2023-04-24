@@ -6,25 +6,26 @@
 #include <sys/stat.h>
 #include <stdio.h>  
 #include <errno.h> 
+#include <stdlib.h>
 
 
 // Creates a new pipe and save descriptors to the input array
-void criarPipe(int descriptor[]) {
+void createPipe(int descriptor[]) {
 
     // Creates a new pipe
     if(pipe(descriptor) < 0) {
 
         // Error handling
-        printf("Failed to create a pipe.\n");
+        printf("Failed to create a pipe. Aborting.\n");
         exit(1);
     }
 }
 
 // Closes an open pipe given its descriptors
-void closePipe(int* descritorDePipe) {
+void closePipe(int* descriptor) {
 
-    close (descritorDePipe[0]);
-    close (descritorDePipe[1]);
+    close (descriptor[0]);
+    close (descriptor[1]);
 }
 
 
