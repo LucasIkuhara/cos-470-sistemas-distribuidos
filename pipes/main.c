@@ -35,7 +35,26 @@ int main(void) {
     // Creates a new pipe using this int[] as a descriptor
     int pipeDesc[2];
     createPipe(pipeDesc);
-    
+
+    // Fork to create a new process
+    int pid = fork ();
+    if (pid < 0) {
+
+        // Error handling for fork command
+        printf("Failed to perform fork. Aborting.\n");
+        exit(1); // Finaliza o programa com código 1
+    }
+
+    // Producer code
+    if (pid > 0) {
+        printf("A");
+    }
+
+    // Consumer code
+    else {
+        printf("B");
+
+    }
 
     return 0;
 }
