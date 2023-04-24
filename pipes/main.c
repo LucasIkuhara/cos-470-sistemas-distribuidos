@@ -20,6 +20,14 @@ void criarPipe(int descriptor[]) {
     }
 }
 
+// Closes an open pipe given its descriptors
+void closePipe(int* descritorDePipe) {
+
+    close (descritorDePipe[0]);
+    close (descritorDePipe[1]);
+}
+
+
 
 int main(void) {
 
