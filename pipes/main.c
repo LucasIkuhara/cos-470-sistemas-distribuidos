@@ -28,9 +28,43 @@ void closePipe(int* descriptor) {
     close (descriptor[1]);
 }
 
+/*
+Consumer source-code.
+Responsible for reading numbers.
+*/
+void consumer(int* descriptor) {
+
+    printf("Started consumer.\n");
+    int lastNum = 1;
+
+    // Create reading loop
+    while(lastNum != 0) {
+
+        // Read pipe output and store at lastNum
+        read(descriptor[0], &lastNum, sizeof(int));
+        printf("Consumer: %d\n", lastNum);
+    }
+
+}
+
+/*
+Producer source-code.
+Responsible for generating numbers.
+*/
+void producer(int* descriptor, int n) {
+
+    printf("Started producer.\n");
+
+    for (int i = 0; i < n; i++) {
+
+        // Send value N by writing to the pipe
+        write (descriptor[1], &n, sizeof(int));
+    }
+}
 
 
-int main(void) {
+
+int main(int argc, char *argv[]) {
 
     // Creates a new pipe using this int[] as a descriptor
     int pipeDesc[2];
@@ -47,13 +81,12 @@ int main(void) {
 
     // Producer code
     if (pid > 0) {
-        printf("A");
+        producer(pipeDesc, 100);
     }
 
     // Consumer code
     else {
-        printf("B");
-
+        consumer(pipeDesc);
     }
 
     return 0;
