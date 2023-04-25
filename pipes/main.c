@@ -66,6 +66,16 @@ void producer(int* descriptor, int n) {
 
 int main(int argc, char *argv[]) {
 
+    // Check if an argument is present for busy vs blocking waiting
+    if (argc < 2) {
+        printf("Missing argument N. A number of iterations should be given as an argument. Eg. './pipes.out 100'\nAborting.\n");
+        exit(1);
+    }
+
+    // Parse argv to int
+    char *p;
+    int n = (int) strtol( argv[1],&p, 10);
+
     // Creates a new pipe using this int[] as a descriptor
     int pipeDesc[2];
     createPipe(pipeDesc);
@@ -81,7 +91,7 @@ int main(int argc, char *argv[]) {
 
     // Producer code
     if (pid > 0) {
-        producer(pipeDesc, 100);
+        producer(pipeDesc, n);
     }
 
     // Consumer code
