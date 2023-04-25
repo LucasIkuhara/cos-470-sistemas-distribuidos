@@ -55,10 +55,16 @@ void producer(int* descriptor, int n) {
 
     printf("Started producer.\n");
 
+    // Use time as Seed for RNG
+    srand(time(NULL));
+
     for (int i = 0; i < n; i++) {
 
+        // Random value generation from 1 to 100
+        int x = (rand() % 100) + 1;
+
         // Send value N by writing to the pipe
-        write (descriptor[1], &n, sizeof(int));
+        write (descriptor[1], &x, sizeof(int));
     }
 }
 
