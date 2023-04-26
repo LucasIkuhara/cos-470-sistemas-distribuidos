@@ -68,6 +68,144 @@ println!("PID {} exists and is {}", pid, proc.status());
 Caso um processo com o PID exista, seu status é imprimido na tela. Caso contrário, o erro `Chosen PID does not exist.` ocorre, e a execução do programa é abortada.
 
 
-<MUDAR>
+## Pipes
 
-### Signal-Receiver
+### Explicando o código-fonte
+
+
+```C
+// Check if an argument is present for busy vs blocking waiting
+if (argc < 2) {
+    printf("Missing argument N. A number of iterations should be given as an argument. Eg. './pipes.out 100'\nAborting.\n");
+    exit(1);
+}
+
+// Parse argv to int
+char *p;
+int n = (int) strtol( argv[1],&p, 10);
+```
+
+Este trecho é responsável por ler os argumentos utilizados para executar o programa (ex: "./pipes.out 100"). O argumento esperado é o valor de N, que indica a quantidade de números que deverão ser gerados pelo produtor. A primeira condicional do código testa se foram recebidos argumentos suficientes, ou seja, se o valor de N foi inserido. Em seguida, é executada a conversão do argumento lido como texto (*char) para um inteiro, que será usado para controlar as iterações do produtor.
+
+Em seguida, é criado um array que guardará os descritores de pipe, e é invocada a função que os cria:
+```C
+// Creates a new pipe using this int[] as a descriptor
+int pipeDesc[2];
+createPipe(pipeDesc);
+```
+
+Sendo as funções de criação e desalocação de pipes definidas como:
+```C
+// Creates a new pipe and save descriptors to the input array
+void createPipe(int descriptor[]) {
+
+    // Creates a new pipe
+    if(pipe(descriptor) < 0) {
+
+        // Error handling
+        printf("Failed to create a pipe. Aborting.\n");
+        exit(1);
+    }
+}
+
+// Closes an open pipe given its descriptors
+void closePipe(int* descriptor) {
+
+    close (descriptor[0]);
+    close (descriptor[1]);
+}
+```
+
+Ao invocar a função pipe, checamos se o retorno é negativo, o que indica um erro na criação do pipe, para que o usuário possa ser notificado.
+A função de desalocação simplesmente fecha individualmente as duas pontas do pipe.
+
+Para a criação de um processo separado para o consumidor, é utilizado o comando `fork()`.
+
+```C
+// Fork to create a new process
+    int pid = fork ();
+    if (pid < 0) {
+
+        // Error handling for fork command
+        printf("Failed to perform fork. Aborting.\n");
+        exit(1); // Finaliza o programa com código 1
+    }
+
+    // Producer code
+    if (pid > 0) {
+        producer(pipeDesc, n);
+    }
+
+    // Consumer code
+    else {
+        consumer(pipeDesc);
+    }
+```
+
+Caso a chamada do `fork()` retorne um valor negativo, sua execução falhou, e portanto, o erro é tratado.
+Se a chamada for executada de maneira bem-sucedida, ela retornará o PID do novo processo criado. 
+
+Note que no processo pai, a variável PID terá guardado da chamada `fork()`, enquanto no processo filho, não. Essa será a base do mecanismo que diferenciará o comportamento dos processos. Desta forma, o processo pai executará o código do produtor, segregado para a função `producer`; e o processo filho, executará o código da função `consumer`.
+
+#### Producer
+
+A função do produtor recebe apenas dois argumentos: o array de descritores de pipe, para que possa escrever, e o valor de N, que dermina quantos valores serão produzidos.
+
+```C
+/*
+Producer source-code.
+Responsible for generating numbers.
+*/
+void producer(int* descriptor, int n) {
+
+    printf("Started producer.\n");
+    int value = 1;
+
+    // Use time as Seed for RNG
+    srand(time(NULL));
+
+    for (int i = 0; i < n; i++) {
+
+        // Random value generation from 1 to 100
+        int delta = (rand() % 100) + 1;
+        value = value + delta;
+
+        // Send value N by writing to the pipe
+        write (descriptor[1], &value, sizeof(int));
+    }
+
+    // Send stop command to consumer
+    int stop = 0;
+    write (descriptor[1], &stop, sizeof(int));
+}
+```
+
+O trecho `srand(time(NULL))` é usado para gerar um seed novo para a função geradora de números aleatórios baseado no tempo atual, para que sejam diferentes toda vez que o programa é executado.
+
+Iteramos N vezes, para produzir e enviar N números. O trecho `(rand() % 100) + 1` gera valores de int aleatórios, e garante que estão no intervalo [1, 100] usando a operação `mod`. A adição de `1` garante que `0` não serão enviados, pois interrompem a execução do programa.
+
+É usada a chamada `write()` para escrever no pipe, usando o tamanho fixo de `sizeof(int)`, tanto para escrita, tanto pra leitura no consumidor.
+
+Ao acabar as N iterações, é feito um último `write()`, que sinaliza a condição de parada do consumer.
+
+#### Consumer
+```C
+/*
+Consumer source-code.
+Responsible for reading numbers.
+*/
+void consumer(int* descriptor) {
+
+    printf("Started consumer.\n");
+    int lastNum = 1;
+
+    // Create reading loop
+    while(lastNum != 0) {
+
+        // Read pipe output and store at lastNum
+        read(descriptor[0], &lastNum, sizeof(int));
+        printf("Consumer: %d\n", lastNum);
+    }
+
+}
+```
