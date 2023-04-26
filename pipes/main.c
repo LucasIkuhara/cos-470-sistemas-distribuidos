@@ -29,6 +29,21 @@ void closePipe(int* descriptor) {
 }
 
 /*
+Checks wether a number is a prime or not. If it is, return 1, else 0.
+*/
+int isPrimeNumber(int n) { 
+
+    for (int i = 2; i <= n / 2; ++i) {
+
+        if (n % i == 0) {
+            return 0;
+        }
+  }
+
+  return 1;
+}
+
+/*
 Consumer source-code.
 Responsible for reading numbers.
 */
@@ -38,11 +53,22 @@ void consumer(int* descriptor) {
     int lastNum = 1;
 
     // Create reading loop
-    while(lastNum != 0) {
+    while(1) {
 
         // Read pipe output and store at lastNum
         read(descriptor[0], &lastNum, sizeof(int));
-        printf("Consumer: %d\n", lastNum);
+
+        // Stop upon receiving zero
+        if (lastNum == 0) break;
+
+        // Checks if lastNum is a prime
+        if(isPrimeNumber(lastNum)) {
+            printf("Consumer: Received %d, which is a prime.\n", lastNum);
+        }
+
+        else {
+            printf("Consumer: Received %d, which is not a prime.\n", lastNum);
+        }
     }
 
 }
