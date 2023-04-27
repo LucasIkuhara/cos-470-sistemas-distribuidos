@@ -1,6 +1,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <csignal>
+#include <sys/wait.h>
 
 struct SignalSender {
     const pid_t target_pid;
@@ -80,8 +81,7 @@ int main() {
 
     // Wait for both processes to exit
     int status;
-    waitpid(sender_pid, &status, 0);
-    waitpid(receiver_pid, &status, 0);
+    wait(&status);
 
     return 0;
 }
