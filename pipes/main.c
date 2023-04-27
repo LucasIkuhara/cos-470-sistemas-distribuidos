@@ -71,6 +71,9 @@ void consumer(int* descriptor) {
         }
     }
 
+    // Close pipes before exiting
+    closePipe(descriptor);
+
 }
 
 /*
