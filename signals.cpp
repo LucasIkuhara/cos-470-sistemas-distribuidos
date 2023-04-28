@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <csignal>
 #include <sys/wait.h>
+#include <string.h>
 
 struct SignalSender {
     const pid_t target_pid;
@@ -59,10 +60,21 @@ struct SignalReceiver {
 };
 
 
-int main() {
+int main(int argc, char *argv[]) {
+
+    int blockMode;
+    if (strcmp(argv[1], "block\n") == 0 || strcmp(argv[1], "block") == 0) { 
+        printf("Blocking-wait will be used.\n");
+        blockMode = 1;
+    }
+    else {
+        printf("Busy-wait will be used.\n");
+        blockMode = 0;
+    }
+
     auto receiver_pid = fork();
     if (receiver_pid == 0) {
-        auto receiver = SignalReceiver{true};
+        auto receiver = SignalReceiver{blockMode};
         receiver.run();
         exit(EXIT_SUCCESS);
     }
