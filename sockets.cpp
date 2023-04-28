@@ -6,6 +6,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <cmath>
+#include <sys/wait.h>
+#include <cstring>
+
 
 const int PORT = 10800;
 volatile bool program_terminated = false;
@@ -153,7 +156,7 @@ struct Consumer {
                 std::cout << "Consumer: Received 0. Exiting" << std::endl;
                 close(socket_fd);
                 close(producer_socket);
-                exit(1);
+                exit(0);
             }
 
             std::cout << "Consumed: " << number << std::endl;
@@ -165,18 +168,16 @@ struct Consumer {
 };
 
 int main() {
-    signal(SIGINT, SIG_IGN);
 
     int producer_pid = fork();
     if (producer_pid == 0) {
-        Producer producer;
-        producer.produce();
-    }
-
-    int consumer_pid = fork();
-    if (consumer_pid == 0) {
         Consumer consumer;
         consumer.consume();
+    }
+
+    else {
+        Producer producer;
+        producer.produce();
     }
 
     int status;
