@@ -45,6 +45,7 @@ struct Producer {
 
         if (connect(socket_fd, (struct sockaddr*)&consumer_address, sizeof(consumer_address)) < 0) {
             std::cerr << "Connection Failed" << std::endl;
+            close(socket_fd);
             exit(0);
         }
     }
@@ -78,9 +79,10 @@ struct Producer {
 
         std::cout << "Producer: Received SIGINT. Sending 0 and exiting" << std::endl;
         send_number(0);
+        // sleep(1);    
 
         close(socket_fd);
-        exit(1);
+        exit(0);
     }
 };
 
@@ -99,7 +101,7 @@ struct Consumer {
         socket_fd = socket(AF_INET, SOCK_STREAM, 0);
         if (socket_fd == 0) {
             std::cerr << "Error creating socket" << std::endl;
-            exit(1);
+            exit(0);
         }
     }
 
@@ -113,6 +115,7 @@ struct Consumer {
 
         if (bind(socket_fd, (struct sockaddr *)&address, addr_len) < 0) {
             std::cerr << "Bind failed" << std::endl;
+            close(socket_fd);
             exit(0);
         }
     }
@@ -120,6 +123,7 @@ struct Consumer {
     void start_listen() {
         if (listen(socket_fd, 3) < 0) {
             std::cerr << "Listen failed" << std::endl;
+            close(socket_fd);
             exit(0);
         }
     }
@@ -169,8 +173,8 @@ struct Consumer {
 
 int main() {
 
-    int producer_pid = fork();
-    if (producer_pid == 0) {
+    int consumer_pid = fork();
+    if (consumer_pid == 0) {
         Consumer consumer;
         consumer.consume();
     }
